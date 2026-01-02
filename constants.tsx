@@ -59,7 +59,6 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
 export const MOCK_USERS: User[] = [
   { id: 'u1', name: 'ApexFlow Admin', role: 'Super Admin', phone: '1231231231', password: '123', active: true },
   { id: 'u2', name: 'Ramesh Picker', role: 'Picker', phone: '9876543211', password: '123', active: true },
-  { id: 'u3', name: 'Suresh Packer', role: 'Picker', phone: '9876543212', password: '123', active: true },
   { id: 'u4', name: 'Mahesh Checker', role: 'Checker', phone: '9876543213', password: '123', active: true },
 ];
 
