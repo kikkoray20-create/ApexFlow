@@ -2,9 +2,9 @@ import React, { useMemo, useEffect, useState } from 'react';
 import { 
   Layers, ChevronDown, LayoutDashboard, X, ShieldAlert
 } from 'lucide-react';
-import { SIDEBAR_ITEMS } from '../constants';
-import { UserRole, SidebarItem, RolePermissions } from '../types';
-import { fetchRolePermissions } from '../services/db';
+import { SIDEBAR_ITEMS } from '../constants.tsx';
+import { UserRole, SidebarItem, RolePermissions } from '../types.ts';
+import { fetchRolePermissions } from '../services/db.ts';
 
 interface SidebarProps {
   currentView: string;

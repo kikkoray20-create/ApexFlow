@@ -1,28 +1,28 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import Sidebar from './components/Sidebar';
-import Header from './components/Header';
-import StatsCards from './components/StatsCards';
-import Filters from './components/Filters';
-import OrderTable from './components/OrderTable';
-import OrderDetail from './components/OrderDetail';
-import FinancialInvoice from './components/FinancialInvoice';
-import Inventory from './components/Inventory';
-import UserManagement from './components/UserManagement';
-import MasterControl from './components/MasterControl';
-import Customers from './components/Customers';
-import CustomerFirms from './components/CustomerFirms';
-import CustomerGR from './components/CustomerGR';
-import LinksManager from './components/LinksManager';
-import BroadcastGroups from './components/BroadcastGroups';
-import ShopModelList from './components/ShopModelList';
-import ModelHistoryDetail from './components/ModelHistoryDetail';
-import OrderReports from './components/OrderReports';
-import CustomerOrderReports from './components/CustomerOrderReports';
-import CreateOrder from './components/CreateOrder';
-import Login from './components/Login';
+import Sidebar from './components/Sidebar.tsx';
+import Header from './components/Header.tsx';
+import StatsCards from './components/StatsCards.tsx';
+import Filters from './components/Filters.tsx';
+import OrderTable from './components/OrderTable.tsx';
+import OrderDetail from './components/OrderDetail.tsx';
+import FinancialInvoice from './components/FinancialInvoice.tsx';
+import Inventory from './components/Inventory.tsx';
+import UserManagement from './components/UserManagement.tsx';
+import MasterControl from './components/MasterControl.tsx';
+import Customers from './components/Customers.tsx';
+import CustomerFirms from './components/CustomerFirms.tsx';
+import CustomerGR from './components/CustomerGR.tsx';
+import LinksManager from './components/LinksManager.tsx';
+import BroadcastGroups from './components/BroadcastGroups.tsx';
+import ShopModelList from './components/ShopModelList.tsx';
+import ModelHistoryDetail from './components/ModelHistoryDetail.tsx';
+import OrderReports from './components/OrderReports.tsx';
+import CustomerOrderReports from './components/CustomerOrderReports.tsx';
+import CreateOrder from './components/CreateOrder.tsx';
+import Login from './components/Login.tsx';
 import { RefreshCw } from 'lucide-react';
-import { NotificationProvider, useNotification } from './context/NotificationContext';
-import { Order, User, OrderStatus, InventoryItem, Customer, OrderItem, InventoryLog } from './types';
+import { NotificationProvider, useNotification } from './context/NotificationContext.tsx';
+import { Order, User, OrderStatus, InventoryItem, Customer, OrderItem, InventoryLog } from './types.ts';
 import { 
     fetchOrders, 
     updateOrderInDB, 
@@ -35,7 +35,7 @@ import {
     fetchLinks,
     updateLinkInDB,
     fetchUsers
-} from './services/db';
+} from './services/db.ts';
 
 const AppContent: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
