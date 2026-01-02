@@ -24,8 +24,15 @@ const getData = async (storageKey: string, fallbackData: any[] = [], instanceId?
     const local = localStorage.getItem(storageKey);
     let parsed = local ? JSON.parse(local) : [];
     
-    // If local is empty, use the fallback mock data ONLY for configuration keys OR when user explicitly requests mock data (now enabled for inventory and customers)
-    const isMockAllowedKey = ['apexflow_role_permissions', 'apexflow_master_records', 'apexflow_users', 'apexflow_inventory', 'apexflow_customers'].includes(storageKey);
+    // Improved Seeding Logic: 
+    // If local is empty, use the fallback data for crucial keys
+    const isMasterKey = storageKey.startsWith(KEYS.master_records);
+    const isMockAllowedKey = [
+        'apexflow_role_permissions', 
+        'apexflow_users', 
+        'apexflow_inventory', 
+        'apexflow_customers'
+    ].includes(storageKey) || isMasterKey;
     
     if (parsed.length === 0 && fallbackData.length > 0 && isMockAllowedKey) {
         parsed = fallbackData;
@@ -33,7 +40,7 @@ const getData = async (storageKey: string, fallbackData: any[] = [], instanceId?
     }
 
     // Apply isolation filtering: show if it has no instanceId (MOCK) OR matches the user's instance
-    if (instanceId && !['apexflow_role_permissions', 'apexflow_master_records'].includes(storageKey)) {
+    if (instanceId && !['apexflow_role_permissions'].includes(storageKey) && !storageKey.startsWith(KEYS.master_records)) {
         return parsed.filter((item: any) => !item.instanceId || item.instanceId === instanceId);
     }
     
@@ -87,8 +94,20 @@ export const updateRolePermissions = async (permission: RolePermissions) => {
 // MASTER DATA
 // =========================================================
 
+const DEFAULT_MASTERS: Record<string, string[]> = {
+    brand: ['APPLE', 'SAMSUNG', 'VIVO', 'OPPO', 'REALME', 'XIAOMI', 'ONEPLUS', 'MOTOROLA', 'GOOGLE'],
+    quality: ['OG', 'ORIGINAL', 'PREMIUM', 'HD+', 'OLED', 'AMOLED', 'IN-CELL'],
+    category: ['DISPLAY', 'BATTERY', 'FLEX', 'CAMERA', 'BACK GLASS', 'HOUSING', 'IC'],
+    warehouse: ['MAIN WAREHOUSE', 'APEXFLOW NORTH', 'APEXFLOW SOUTH'],
+    model: ['IPHONE 15 PRO MAX', 'S23 ULTRA', 'NOTE 12 PRO', 'V29 PRO', 'RENO 10']
+};
+
 export const fetchMasterRecords = async (type: string): Promise<string[]> => {
-    const data = await getData(`${KEYS.master_records}_${type}`);
+    const fallback = (DEFAULT_MASTERS[type] || []).map(val => ({
+        id: `${type}_${val.replace(/\s+/g, '_').toLowerCase()}`,
+        value: val
+    }));
+    const data = await getData(`${KEYS.master_records}_${type}`, fallback);
     return data.map((d: any) => d.value).sort();
 };
 

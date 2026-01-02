@@ -78,7 +78,7 @@ const CustomerOrderReports: React.FC = () => {
         return customerStatistics.slice(startIndex, startIndex + itemsPerPage);
     }, [customerStatistics, currentPage, itemsPerPage]);
 
-    const rangeStart = (currentPage - 1) * itemsPerPage + 1;
+    const rangeStart = customerStatistics.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
     const rangeEnd = Math.min(currentPage * itemsPerPage, customerStatistics.length);
 
     const summary = useMemo(() => ({
@@ -92,7 +92,7 @@ const CustomerOrderReports: React.FC = () => {
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center text-white"><Users size={24} /></div>
-                    <div><h1 className="text-xl font-bold text-slate-800 tracking-tight">Customer Insights</h1><p className="text-sm text-slate-500">Purchasing behavior analytics</p></div>
+                    <div><h1 className="text-xl font-bold text-slate-800 tracking-tight">Customer Analytics</h1><p className="text-sm text-slate-500">Purchasing Behavior Reports</p></div>
                 </div>
                 <div className="flex items-center gap-2">
                     <Calendar size={14} className="text-indigo-400" />
@@ -104,9 +104,9 @@ const CustomerOrderReports: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
-                    { label: 'Active Customers', value: summary.customers, icon: <Users size={20}/>, color: 'text-blue-600', bg: 'bg-blue-50' },
-                    { label: 'Total Orders', value: summary.orders, icon: <ShoppingBag size={20}/>, color: 'text-amber-600', bg: 'bg-amber-50' },
-                    { label: 'Fulfilled Qty', value: summary.fulfilled, icon: <PackageCheck size={20}/>, color: 'text-emerald-600', bg: 'bg-emerald-50' }
+                    { label: 'Purchasing Clients', value: summary.customers, icon: <Users size={20}/>, color: 'text-blue-600', bg: 'bg-blue-50' },
+                    { label: 'Total Verified Orders', value: summary.orders, icon: <ShoppingBag size={20}/>, color: 'text-amber-600', bg: 'bg-amber-50' },
+                    { label: 'Global Fulfilled Units', value: summary.fulfilled, icon: <PackageCheck size={20}/>, color: 'text-emerald-600', bg: 'bg-emerald-50' }
                 ].map((s, i) => (
                     <div key={i} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
                         <div className={`w-12 h-12 ${s.bg} rounded-lg flex items-center justify-center ${s.color}`}>{s.icon}</div>
@@ -117,20 +117,20 @@ const CustomerOrderReports: React.FC = () => {
 
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                 <div className="p-4 border-b flex flex-col md:flex-row justify-between items-center gap-3 bg-slate-50/30">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Customer Purchasing Performance</h3>
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Client Engagement Statistics</h3>
                     <div className="relative w-full md:w-64">
-                        <input type="text" placeholder="Filter by client..." value={customerSearch} onChange={(e) => { setCustomerSearch(e.target.value); setCurrentPage(1); }} className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 shadow-sm" />
+                        <input type="text" placeholder="Filter by name..." value={customerSearch} onChange={(e) => { setCustomerSearch(e.target.value); setCurrentPage(1); }} className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 shadow-sm" />
                         <Search className="absolute left-3 top-2.5 text-slate-400" size={14} />
                     </div>
                 </div>
                 
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left">
                         <thead className="bg-slate-50 border-b">
                             <tr className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                                <th className="px-6 py-4">Customer Name</th>
-                                <th className="px-4 py-4 text-center">Orders</th>
-                                <th className="px-4 py-4 text-right">Order Qty</th>
+                                <th className="px-6 py-4">Client Name</th>
+                                <th className="px-4 py-4 text-center">Volume</th>
+                                <th className="px-4 py-4 text-right">Requested</th>
                                 <th className="px-4 py-4 text-right">Fulfilled</th>
                             </tr>
                         </thead>
@@ -138,14 +138,14 @@ const CustomerOrderReports: React.FC = () => {
                             {loading ? (
                                 <tr><td colSpan={4} className="py-20 text-center"><Loader2 className="animate-spin text-indigo-500 mx-auto" size={24} /></td></tr>
                             ) : paginatedStats.length === 0 ? (
-                                <tr><td colSpan={4} className="py-20 text-center text-slate-400 text-xs font-bold uppercase">No records found for range</td></tr>
+                                <tr><td colSpan={4} className="py-20 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">No activity in this window</td></tr>
                             ) : (
                                 paginatedStats.map((stat, idx) => (
                                     <tr key={idx} className="hover:bg-slate-50 transition-colors">
                                         <td className="px-6 py-4 font-semibold text-slate-700 text-sm uppercase">{stat.customerName}</td>
-                                        <td className="px-4 py-4 text-center"><span className="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 text-[10px] font-black">{stat.orderCount}</span></td>
-                                        <td className="px-4 py-4 text-right text-sm text-slate-600 font-medium">{stat.totalOrderQty}</td>
-                                        <td className="px-4 py-4 text-right font-black text-emerald-600 text-sm">{stat.totalFulfilled}</td>
+                                        <td className="px-4 py-4 text-center"><span className="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 text-[10px] font-black">{stat.orderCount} Orders</span></td>
+                                        <td className="px-4 py-4 text-right text-sm text-slate-600 font-medium">{stat.totalOrderQty} Pcs</td>
+                                        <td className="px-4 py-4 text-right font-black text-emerald-600 text-sm">{stat.totalFulfilled} Pcs</td>
                                     </tr>
                                 ))
                             )}
@@ -153,12 +153,11 @@ const CustomerOrderReports: React.FC = () => {
                     </table>
                 </div>
 
-                {/* Pagination Footer */}
                 {!loading && customerStatistics.length > 0 && (
                     <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4 shrink-0">
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rows</span>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Page Size</span>
                                 <div className="relative">
                                     <select 
                                         value={itemsPerPage} 

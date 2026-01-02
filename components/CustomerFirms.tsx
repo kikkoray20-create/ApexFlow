@@ -10,7 +10,6 @@ import {
     MapPin,
     Hash,
     Building2,
-    CalendarDays,
     History,
     ReceiptText,
     Info,
@@ -102,14 +101,12 @@ const CustomerFirms: React.FC = () => {
 
     const handleSaveFirm = async (e: React.FormEvent) => {
         e.preventDefault();
-        
         if (!formData.name) {
             showNotification('Firm Name is required', 'error');
             return;
         }
 
         const now = new Date().toISOString();
-
         if (isEditMode && selectedFirm) {
             const updatedFirm: Firm = {
                 ...selectedFirm,
@@ -141,17 +138,15 @@ const CustomerFirms: React.FC = () => {
         );
     }, [firms, searchTerm]);
 
-    // Pagination Logic
     const totalPages = Math.ceil(filteredFirms.length / itemsPerPage);
     const paginatedFirms = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
         return filteredFirms.slice(startIndex, startIndex + itemsPerPage);
     }, [filteredFirms, currentPage, itemsPerPage]);
 
-    const rangeStart = (currentPage - 1) * itemsPerPage + 1;
+    const rangeStart = filteredFirms.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
     const rangeEnd = Math.min(currentPage * itemsPerPage, filteredFirms.length);
 
-    // --- History Logic for Selected Firm ---
     const firmHistory = useMemo(() => {
         if (!selectedFirm) return [];
         const firmMembers = customers.filter(c => c.firmId === selectedFirm.name);
@@ -167,8 +162,6 @@ const CustomerFirms: React.FC = () => {
 
     return (
         <div className="flex flex-col space-y-8 animate-in fade-in duration-500">
-            
-            {/* Action Bar */}
             <div className="flex flex-col lg:flex-row items-center justify-between gap-6 px-1">
                 <div className="relative w-full lg:max-w-2xl group">
                     <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors">
@@ -176,7 +169,7 @@ const CustomerFirms: React.FC = () => {
                     </div>
                     <input
                         type="text"
-                        placeholder="Search by business name or GSTID..."
+                        placeholder="Search by firm name or GSTID..."
                         value={searchTerm}
                         onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                         className="w-full pl-14 pr-8 py-4 bg-white border border-slate-200 rounded-[2.5rem] text-[13px] font-bold uppercase tracking-tight text-slate-800 outline-none focus:ring-8 focus:ring-indigo-500/5 focus:border-indigo-500 transition-all shadow-sm placeholder-slate-300"
@@ -190,13 +183,12 @@ const CustomerFirms: React.FC = () => {
                     >
                         <RefreshCw size={20} strokeWidth={2.5} className={isRefreshing ? 'animate-spin' : ''} />
                     </button>
-                    <button onClick={openCreateModal} className="flex-1 lg:flex-none flex items-center justify-center px-10 py-4 bg-indigo-600 text-white rounded-[2.5rem] hover:bg-indigo-700 font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all active:scale-95 whitespace-nowrap">
+                    <button onClick={openCreateModal} className="flex-1 lg:flex-none flex items-center justify-center px-10 py-4 bg-indigo-600 text-white rounded-[2.5rem] font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all active:scale-95 whitespace-nowrap">
                         <Plus size={16} className="mr-2" strokeWidth={4} /> Register Firm
                     </button>
                 </div>
             </div>
 
-            {/* List Table View */}
             <div className="bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm flex flex-col">
                 <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left min-w-[1000px]">
@@ -215,14 +207,14 @@ const CustomerFirms: React.FC = () => {
                                 <tr>
                                     <td colSpan={6} className="py-32 text-center">
                                         <Loader2 className="animate-spin text-indigo-500 mx-auto" size={32} />
-                                        <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mt-4">Syncing Enterprise Directory...</p>
+                                        <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mt-4">Syncing...</p>
                                     </td>
                                 </tr>
                             ) : paginatedFirms.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="py-32 text-center">
                                         <Building2 size={40} className="text-slate-100 mx-auto mb-4" />
-                                        <p className="text-xs font-black text-slate-300 uppercase">No entities found in directory</p>
+                                        <p className="text-xs font-black text-slate-300 uppercase">No firms found</p>
                                     </td>
                                 </tr>
                             ) : (
@@ -250,7 +242,7 @@ const CustomerFirms: React.FC = () => {
                                                 <div className="flex items-start gap-2 max-w-[300px]">
                                                     <MapPin size={12} className="text-slate-300 mt-0.5 shrink-0" />
                                                     <p className="text-[11px] font-bold text-slate-500 uppercase tracking-tight leading-relaxed line-clamp-1 group-hover:line-clamp-none transition-all">
-                                                        {firm.address || 'No address specified'}
+                                                        {firm.address || 'No address'}
                                                     </p>
                                                 </div>
                                             </td>
@@ -265,19 +257,19 @@ const CustomerFirms: React.FC = () => {
                                                     {firm.createdAt ? new Date(firm.createdAt).toLocaleDateString('en-GB') : '-'}
                                                 </span>
                                             </td>
-                                            <td className="px-8 py-5">
+                                            <td className="px-8 py-5 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button 
                                                         onClick={() => openHistoryModal(firm)}
                                                         className="p-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all shadow-sm active:scale-90"
-                                                        title="View Ledger History"
+                                                        title="Ledger"
                                                     >
                                                         <History size={16} strokeWidth={3} />
                                                     </button>
                                                     <button 
                                                         onClick={() => openEditModal(firm)}
                                                         className="p-2.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all shadow-sm active:scale-90"
-                                                        title="Edit Firm Details"
+                                                        title="Edit"
                                                     >
                                                         <Pencil size={16} strokeWidth={3} />
                                                     </button>
@@ -291,12 +283,11 @@ const CustomerFirms: React.FC = () => {
                     </table>
                 </div>
 
-                {/* Pagination Footer */}
                 {!loading && filteredFirms.length > 0 && (
                     <div className="px-10 py-6 bg-slate-50/50 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6 shrink-0">
                         <div className="flex items-center gap-8">
                             <div className="flex items-center gap-3">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rows per Page</span>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Page Size</span>
                                 <div className="relative">
                                     <select 
                                         value={itemsPerPage} 
@@ -309,7 +300,7 @@ const CustomerFirms: React.FC = () => {
                                 </div>
                             </div>
                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                Showing <span className="text-slate-900">{rangeStart} - {rangeEnd}</span> of <span className="text-slate-900">{filteredFirms.length}</span> Firms
+                                Showing <span className="text-slate-900">{rangeStart}-{rangeEnd}</span> of <span className="text-slate-900">{filteredFirms.length}</span>
                             </div>
                         </div>
 
@@ -353,7 +344,6 @@ const CustomerFirms: React.FC = () => {
                 )}
             </div>
 
-            {/* --- HISTORY LOG MODAL --- */}
             {isHistoryModalOpen && selectedFirm && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[150] flex items-center justify-center p-4 animate-in fade-in duration-300">
                     <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden border border-slate-100 animate-in zoom-in-95">
@@ -364,12 +354,12 @@ const CustomerFirms: React.FC = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight leading-none">{selectedFirm.name} - Ledger</h3>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-2">Aggregated Audit Trail</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-2">Combined Audit Trail</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-6">
                                 <div className="text-right">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Combined Credit</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Closing Credit</p>
                                     <p className={`text-2xl font-black tracking-tighter ${firmBalance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                                         {firmBalance < 0 ? '-' : ''}₹{Math.abs(firmBalance).toFixed(1)}
                                     </p>
@@ -388,13 +378,13 @@ const CustomerFirms: React.FC = () => {
                                             <tr className="bg-slate-50 border-b border-slate-100">
                                                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Timestamp</th>
                                                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Ref ID</th>
-                                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Member Info</th>
-                                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Action Type</th>
-                                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Credit Impact</th>
+                                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Operator</th>
+                                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Type</th>
+                                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Credit Delta</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-50">
-                                            {firmHistory.length > 0 ? firmHistory.map((order, idx) => (
+                                            {firmHistory.length > 0 ? firmHistory.map((order) => (
                                                 <tr key={order.id} className="hover:bg-slate-50/50 transition-colors group">
                                                     <td className="px-8 py-6">
                                                         <span className="text-[12px] font-bold text-slate-500 uppercase">{order.orderTime}</span>
@@ -405,7 +395,6 @@ const CustomerFirms: React.FC = () => {
                                                     <td className="px-8 py-6">
                                                         <div className="flex flex-col">
                                                             <span className="text-[11px] font-black text-indigo-500 uppercase tracking-tight">{order.customerName}</span>
-                                                            <span className="text-[9px] font-bold text-slate-300 uppercase">#{order.warehouse}</span>
                                                         </div>
                                                     </td>
                                                     <td className="px-8 py-6">
@@ -427,7 +416,7 @@ const CustomerFirms: React.FC = () => {
                                                 <tr>
                                                     <td colSpan={5} className="py-40 text-center">
                                                         <ReceiptText size={48} className="text-slate-100 mx-auto mb-4" />
-                                                        <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.4em]">No recorded transaction history</p>
+                                                        <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.4em]">No financial history found</p>
                                                     </td>
                                                 </tr>
                                             )}
@@ -436,28 +425,26 @@ const CustomerFirms: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-
                         <div className="px-10 py-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
                             <div className="flex items-center gap-2 text-slate-400">
                                 <Info size={14} />
-                                <span className="text-[10px] font-bold uppercase tracking-widest">History includes data from {customers.filter(c => c.firmId === selectedFirm.name).length} linked sub-accounts</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest">Aggregated from {customers.filter(c => c.firmId === selectedFirm.name).length} members</span>
                             </div>
-                            <button onClick={() => setIsHistoryModalOpen(false)} className="px-8 py-3 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-100 transition-all shadow-sm active:scale-95">Close Portal</button>
+                            <button onClick={() => setIsHistoryModalOpen(false)} className="px-8 py-3 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-100 transition-all shadow-sm active:scale-95">Close Ledger</button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* --- REGISTER/EDIT FIRM MODAL --- */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-md z-[120] flex items-center justify-center p-4 animate-in fade-in duration-300">
                     <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden border border-slate-100 animate-in zoom-in-95">
                         <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-white">
                             <div>
                                 <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">
-                                    {isEditMode ? 'Update Business Identity' : 'Register New Entity'}
+                                    {isEditMode ? 'Modify Firm Info' : 'New Firm Registry'}
                                 </h3>
-                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Directory Profile Manager</p>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Authorized Profile Manager</p>
                             </div>
                             <button onClick={() => setIsModalOpen(false)} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all hover:rotate-90">
                                 <X size={20} />
@@ -466,67 +453,29 @@ const CustomerFirms: React.FC = () => {
                         
                         <form onSubmit={handleSaveFirm} className="p-8 space-y-6">
                             <div className="space-y-2">
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
-                                    Firm Legal Name <span className="text-rose-500">*</span>
-                                </label>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Legal Name <span className="text-rose-500">*</span></label>
                                 <div className="relative">
-                                    <input 
-                                        required 
-                                        type="text" 
-                                        value={formData.name} 
-                                        onChange={e => setFormData({...formData, name: e.target.value})} 
-                                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-[13px] font-bold uppercase outline-none focus:bg-white focus:border-indigo-500 transition-all placeholder-slate-300" 
-                                        placeholder="ENTER BUSINESS NAME..." 
-                                    />
+                                    <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-[13px] font-bold uppercase outline-none focus:bg-white focus:border-indigo-500 transition-all placeholder-slate-300" placeholder="ENTER FIRM NAME..." />
                                     <Building2 size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300" />
                                 </div>
                             </div>
-
                             <div className="space-y-2">
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
-                                    GSTIN Number
-                                </label>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">GSTIN (Optional)</label>
                                 <div className="relative">
-                                    <input 
-                                        type="text" 
-                                        value={formData.gstin} 
-                                        onChange={e => setFormData({...formData, gstin: e.target.value})} 
-                                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-[13px] font-bold uppercase outline-none focus:bg-white focus:border-indigo-500 transition-all placeholder-slate-300 font-mono tracking-wider" 
-                                        placeholder="15-DIGIT TAX ID..." 
-                                    />
+                                    <input type="text" value={formData.gstin} onChange={e => setFormData({...formData, gstin: e.target.value})} className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-[13px] font-bold uppercase outline-none focus:bg-white focus:border-indigo-500 transition-all placeholder-slate-300 font-mono tracking-wider" placeholder="15-DIGIT GSTID..." />
                                     <Hash size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300" />
                                 </div>
                             </div>
-
                             <div className="space-y-2">
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
-                                    Full Address
-                                </label>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Registered Address</label>
                                 <div className="relative">
-                                    <textarea 
-                                        value={formData.address} 
-                                        onChange={e => setFormData({...formData, address: e.target.value})} 
-                                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-[13px] font-bold uppercase outline-none focus:bg-white focus:border-indigo-500 transition-all placeholder-slate-300 min-h-[100px] resize-none" 
-                                        placeholder="STREET, AREA, STATE, ZIPCODE..." 
-                                    />
+                                    <textarea value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-[13px] font-bold uppercase outline-none focus:bg-white focus:border-indigo-500 transition-all placeholder-slate-300 min-h-[100px] resize-none" placeholder="FULL BUSINESS ADDRESS..." />
                                     <MapPin size={18} className="absolute right-4 top-4 text-slate-300" />
                                 </div>
                             </div>
-
                             <div className="flex gap-4 pt-4">
-                                <button 
-                                    type="button" 
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="flex-1 py-4 bg-slate-50 text-slate-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all"
-                                >
-                                    Discard
-                                </button>
-                                <button 
-                                    type="submit" 
-                                    className="flex-[2] py-4 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-indigo-100 active:scale-95 transition-all"
-                                >
-                                    {isEditMode ? 'Update Entity' : 'Register Entity'}
-                                </button>
+                                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-slate-50 text-slate-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all">Cancel</button>
+                                <button type="submit" className="flex-[2] py-4 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all">{isEditMode ? 'Update Node' : 'Initialize Node'}</button>
                             </div>
                         </form>
                     </div>
