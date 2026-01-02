@@ -7,6 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script>
+      // Polyfill process for browser environment to prevent white screen crashes
+      window.process = window.process || { env: { API_KEY: "" } };
+      
       tailwind.config = {
         theme: {
           extend: {
@@ -91,6 +94,7 @@
 </head>
   <body>
     <div id="root"></div>
-        <script type="module" src="/index.tsx"></script>
+    <!-- Changed to relative path for better compatibility with static hosting -->
+    <script type="module" src="./index.tsx"></script>
   </body>
 </html>
