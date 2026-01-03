@@ -162,7 +162,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   >
                     <div className="flex items-center gap-3.5">
                       <span className={`${isActive ? 'text-indigo-600' : 'text-slate-400'}`}>
-                        {React.cloneElement(item.icon as React.ReactElement<any>, { size: 20, strokeWidth: isActive ? 2.5 : 2 })}
+                        {React.isValidElement(item.icon) ? React.cloneElement(item.icon as React.ReactElement<any>, { size: 20, strokeWidth: isActive ? 2.5 : 2 }) : item.icon}
                       </span>
                       {(!isCollapsed || isMobileOpen) && <span>{item.label}</span>}
                     </div>
