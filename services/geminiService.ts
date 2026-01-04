@@ -1,6 +1,5 @@
-
 import { GoogleGenAI } from "@google/genai";
-import { GroundingChunk } from "../types";
+import { GroundingChunk } from "../types.ts";
 
 // Helper to get AI instance safely
 const getAI = () => {

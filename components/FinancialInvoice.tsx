@@ -12,8 +12,8 @@ import {
     RotateCcw,
     MessageSquare
 } from 'lucide-react';
-import { Order } from '../types';
-import { useNotification } from '../context/NotificationContext';
+import { Order } from '../types.ts';
+import { useNotification } from '../context/NotificationContext.tsx';
 
 interface FinancialInvoiceProps {
     order: Order;
@@ -213,7 +213,7 @@ const FinancialInvoice: React.FC<FinancialInvoiceProps> = ({ order, onClose }) =
                 </div>
 
                 {/* Footer Actions */}
-                <div className="px-8 py-5 bg-white border-t border-slate-200 flex flex-wrap justify-center md:justify-end gap-3 no-print">
+                <div className="px-8 py-5 bg-white border-t border-slate-200 flex flex-wrap justify-center md:justify-end gap-3 no-print shrink-0">
                     <button onClick={onClose} className="px-6 py-3 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-all">Close</button>
                     <button onClick={handleDownload} className="flex items-center justify-center gap-2 px-8 py-3 bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all">
                         <Download size={16} /> Download

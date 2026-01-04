@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Sparkles, X, Loader2, ArrowRight, BrainCircuit, Activity, ExternalLink } from 'lucide-react';
-import { analyzeComplexData, searchMarketTrends } from '../services/geminiService';
-import { GroundingChunk } from '../types';
+import { analyzeComplexData, searchMarketTrends } from '../services/geminiService.ts';
+import { GroundingChunk } from '../types.ts';
 
 const AIAssistant: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);

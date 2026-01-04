@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
     Search, 
@@ -24,9 +23,9 @@ import {
     ArrowRight,
     Target
 } from 'lucide-react';
-import { fetchCustomers, fetchGroups, addGroupToDB, updateGroupInDB, deleteGroupFromDB } from '../services/db';
-import { Customer } from '../types';
-import { useNotification } from '../context/NotificationContext';
+import { fetchCustomers, fetchGroups, addGroupToDB, updateGroupInDB, deleteGroupFromDB } from '../services/db.ts';
+import { Customer } from '../types.ts';
+import { useNotification } from '../context/NotificationContext.tsx';
 
 interface BroadcastGroup {
     id: string;
@@ -306,7 +305,7 @@ const BroadcastGroups: React.FC = () => {
                                         <div className="flex items-center justify-end gap-2.5">
                                             <button 
                                                 onClick={() => openViewModal(group)}
-                                                className="p-3 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all shadow-sm active:scale-90"
+                                                className="p-3 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all shadow-sm active:scale-95"
                                                 title="View Intel"
                                             >
                                                 <Eye size={18} strokeWidth={2.5} />

@@ -1,5 +1,5 @@
-import { User, Order, Customer, Firm, InventoryItem, InventoryLog, GRInventoryItem, RolePermissions, OrderItem } from '../types';
-import { MOCK_USERS, MOCK_CUSTOMERS, MOCK_INVENTORY } from '../constants';
+import { User, Order, Customer, Firm, InventoryItem, InventoryLog, GRInventoryItem, RolePermissions, OrderItem } from '../types.ts';
+import { MOCK_USERS, MOCK_CUSTOMERS, MOCK_INVENTORY } from '../constants.tsx';
 
 // Storage Keys
 const KEYS = {
@@ -16,35 +16,22 @@ const KEYS = {
     role_permissions: 'apexflow_role_permissions'
 };
 
-// =========================================================
-// PURE LOCAL STORAGE HELPERS
-// =========================================================
-
 const getData = async (storageKey: string, fallbackData: any[] = [], instanceId?: string) => {
     try {
         const local = localStorage.getItem(storageKey);
         let parsed = local ? JSON.parse(local) : [];
         
-        const isMasterKey = storageKey.startsWith(KEYS.master_records);
-        const isMockAllowedKey = [
-            'apexflow_role_permissions', 
-            'apexflow_users', 
-            'apexflow_inventory', 
-            'apexflow_customers'
-        ].includes(storageKey) || isMasterKey;
-        
-        if (parsed.length === 0 && fallbackData.length > 0 && isMockAllowedKey) {
+        if (parsed.length === 0 && fallbackData.length > 0) {
             parsed = fallbackData;
             localStorage.setItem(storageKey, JSON.stringify(parsed));
         }
 
-        if (instanceId && !['apexflow_role_permissions'].includes(storageKey) && !storageKey.startsWith(KEYS.master_records)) {
+        if (instanceId && !storageKey.startsWith(KEYS.master_records) && storageKey !== KEYS.role_permissions) {
             return parsed.filter((item: any) => !item.instanceId || item.instanceId === instanceId);
         }
         
         return parsed;
     } catch (e) {
-        console.warn(`Data retrieval failed for ${storageKey}`, e);
         return fallbackData;
     }
 };
@@ -72,10 +59,6 @@ const removeData = async (storageKey: string, id: string) => {
     }
 };
 
-// =========================================================
-// ROLE PERMISSIONS
-// =========================================================
-
 export const fetchRolePermissions = async (): Promise<RolePermissions[]> => {
     const defaultPermissions: RolePermissions[] = [
         { role: 'Super Admin', allowedModules: ['orders', 'clients', 'links', 'broadcast', 'models', 'users', 'reports'] },
@@ -92,24 +75,8 @@ export const updateRolePermissions = async (permission: RolePermissions) => {
     return saveData(KEYS.role_permissions, { ...permission, id: permission.role }, true);
 };
 
-// =========================================================
-// MASTER DATA
-// =========================================================
-
-const DEFAULT_MASTERS: Record<string, string[]> = {
-    brand: ['APPLE', 'SAMSUNG', 'VIVO', 'OPPO', 'REALME', 'XIAOMI', 'ONEPLUS', 'MOTOROLA', 'GOOGLE'],
-    quality: ['OG', 'ORIGINAL', 'PREMIUM', 'HD+', 'OLED', 'AMOLED', 'IN-CELL'],
-    category: ['DISPLAY', 'BATTERY', 'FLEX', 'CAMERA', 'BACK GLASS', 'HOUSING', 'IC'],
-    warehouse: ['MAIN WAREHOUSE', 'APEXFLOW NORTH', 'APEXFLOW SOUTH'],
-    model: ['IPHONE 15 PRO MAX', 'S23 ULTRA', 'NOTE 12 PRO', 'V29 PRO', 'RENO 10']
-};
-
 export const fetchMasterRecords = async (type: string): Promise<string[]> => {
-    const fallback = (DEFAULT_MASTERS[type] || []).map(val => ({
-        id: `${type}_${val.replace(/\s+/g, '_').toLowerCase()}`,
-        value: val
-    }));
-    const data = await getData(`${KEYS.master_records}_${type}`, fallback);
+    const data = await getData(`${KEYS.master_records}_${type}`, []);
     return data.map((d: any) => d.value).sort();
 };
 
@@ -123,179 +90,40 @@ export const deleteMasterRecord = async (type: string, value: string) => {
     return removeData(`${KEYS.master_records}_${type}`, id);
 };
 
-// =========================================================
-// USERS
-// =========================================================
+export const fetchUsers = async (instanceId?: string): Promise<User[]> => getData(KEYS.users, MOCK_USERS, instanceId);
+export const addUserToDB = async (user: User) => saveData(KEYS.users, user);
+export const updateUserInDB = async (user: User) => saveData(KEYS.users, user, true);
+export const deleteUserFromDB = async (id: string) => removeData(KEYS.users, id);
 
-// Fixed missing export for fetchUsers
-export const fetchUsers = async (instanceId?: string): Promise<User[]> => {
-    return getData(KEYS.users, MOCK_USERS, instanceId);
-};
+export const fetchOrders = async (instanceId?: string): Promise<Order[]> => getData(KEYS.orders, [], instanceId);
+export const addOrderToDB = async (order: Order) => saveData(KEYS.orders, order);
+export const updateOrderInDB = async (order: Order) => saveData(KEYS.orders, order, true);
+export const deleteOrderFromDB = async (id: string) => removeData(KEYS.orders, id);
 
-// Fixed missing export for addUserToDB
-export const addUserToDB = async (user: User) => {
-    return saveData(KEYS.users, user);
-};
+export const fetchCustomers = async (instanceId?: string): Promise<Customer[]> => getData(KEYS.customers, MOCK_CUSTOMERS, instanceId);
+export const addCustomerToDB = async (customer: Customer) => saveData(KEYS.customers, customer);
+export const updateCustomerInDB = async (customer: Customer) => saveData(KEYS.customers, customer, true);
 
-// Fixed missing export for updateUserInDB
-export const updateUserInDB = async (user: User) => {
-    return saveData(KEYS.users, user, true);
-};
+export const fetchFirms = async (instanceId?: string): Promise<Firm[]> => getData(KEYS.firms, [], instanceId);
+export const addFirmToDB = async (firm: Firm) => saveData(KEYS.firms, firm);
+export const updateFirmInDB = async (firm: Firm) => saveData(KEYS.firms, firm, true);
 
-// Fixed missing export for deleteUserFromDB
-export const deleteUserFromDB = async (id: string) => {
-    return removeData(KEYS.users, id);
-};
+export const fetchInventory = async (instanceId?: string): Promise<InventoryItem[]> => getData(KEYS.inventory, MOCK_INVENTORY, instanceId);
+export const addInventoryItemToDB = async (item: InventoryItem) => saveData(KEYS.inventory, item);
+export const updateInventoryItemInDB = async (item: InventoryItem) => saveData(KEYS.inventory, item, true);
 
-// =========================================================
-// ORDERS
-// =========================================================
+export const fetchInventoryLogs = async (instanceId?: string): Promise<InventoryLog[]> => getData(KEYS.inventory_logs, [], instanceId);
+export const addInventoryLogToDB = async (log: InventoryLog) => saveData(KEYS.inventory_logs, log);
 
-// Fixed missing export for fetchOrders
-export const fetchOrders = async (instanceId?: string): Promise<Order[]> => {
-    return getData(KEYS.orders, [], instanceId);
-};
+export const fetchLinks = async (instanceId?: string) => getData(KEYS.links, [], instanceId);
+export const addLinkToDB = async (link: any) => saveData(KEYS.links, link);
+export const updateLinkInDB = async (link: any) => saveData(KEYS.links, link, true);
+export const deleteLinkFromDB = async (id: string) => removeData(KEYS.links, id);
 
-// Fixed missing export for addOrderToDB
-export const addOrderToDB = async (order: Order) => {
-    return saveData(KEYS.orders, order);
-};
+export const fetchGroups = async (instanceId?: string) => getData(KEYS.groups, [], instanceId);
+export const addGroupToDB = async (group: any) => saveData(KEYS.groups, group);
+export const updateGroupInDB = async (group: any) => saveData(KEYS.groups, group, true);
+export const deleteGroupFromDB = async (id: string) => removeData(KEYS.groups, id);
 
-// Fixed missing export for updateOrderInDB
-export const updateOrderInDB = async (order: Order) => {
-    return saveData(KEYS.orders, order, true);
-};
-
-// Fixed missing export for deleteOrderFromDB
-export const deleteOrderFromDB = async (id: string) => {
-    return removeData(KEYS.orders, id);
-};
-
-// =========================================================
-// CUSTOMERS
-// =========================================================
-
-// Fixed missing export for fetchCustomers
-export const fetchCustomers = async (instanceId?: string): Promise<Customer[]> => {
-    return getData(KEYS.customers, MOCK_CUSTOMERS, instanceId);
-};
-
-// Fixed missing export for addCustomerToDB
-export const addCustomerToDB = async (customer: Customer) => {
-    return saveData(KEYS.customers, customer);
-};
-
-// Fixed missing export for updateCustomerInDB
-export const updateCustomerInDB = async (customer: Customer) => {
-    return saveData(KEYS.customers, customer, true);
-};
-
-// =========================================================
-// FIRMS
-// =========================================================
-
-// Fixed missing export for fetchFirms
-export const fetchFirms = async (instanceId?: string): Promise<Firm[]> => {
-    return getData(KEYS.firms, [], instanceId);
-};
-
-// Fixed missing export for addFirmToDB
-export const addFirmToDB = async (firm: Firm) => {
-    return saveData(KEYS.firms, firm);
-};
-
-// Fixed missing export for updateFirmInDB
-export const updateFirmInDB = async (firm: Firm) => {
-    return saveData(KEYS.firms, firm, true);
-};
-
-// =========================================================
-// INVENTORY
-// =========================================================
-
-// Fixed missing export for fetchInventory
-export const fetchInventory = async (instanceId?: string): Promise<InventoryItem[]> => {
-    return getData(KEYS.inventory, MOCK_INVENTORY, instanceId);
-};
-
-// Fixed missing export for addInventoryItemToDB
-export const addInventoryItemToDB = async (item: InventoryItem) => {
-    return saveData(KEYS.inventory, item);
-};
-
-// Fixed missing export for updateInventoryItemInDB
-export const updateInventoryItemInDB = async (item: InventoryItem) => {
-    return saveData(KEYS.inventory, item, true);
-};
-
-// Fixed missing export for fetchInventoryLogs
-export const fetchInventoryLogs = async (instanceId?: string): Promise<InventoryLog[]> => {
-    return getData(KEYS.inventory_logs, [], instanceId);
-};
-
-// Fixed missing export for addInventoryLogToDB
-export const addInventoryLogToDB = async (log: InventoryLog) => {
-    return saveData(KEYS.inventory_logs, log);
-};
-
-// =========================================================
-// PORTALS / LINKS
-// =========================================================
-
-// Fixed missing export for fetchLinks
-export const fetchLinks = async (instanceId?: string) => {
-    return getData(KEYS.links, [], instanceId);
-};
-
-// Fixed missing export for addLinkToDB
-export const addLinkToDB = async (link: any) => {
-    return saveData(KEYS.links, link);
-};
-
-// Fixed missing export for updateLinkInDB
-export const updateLinkInDB = async (link: any) => {
-    return saveData(KEYS.links, link, true);
-};
-
-// Fixed missing export for deleteLinkFromDB
-export const deleteLinkFromDB = async (id: string) => {
-    return removeData(KEYS.links, id);
-};
-
-// =========================================================
-// BROADCAST GROUPS
-// =========================================================
-
-// Fixed missing export for fetchGroups
-export const fetchGroups = async (instanceId?: string) => {
-    return getData(KEYS.groups, [], instanceId);
-};
-
-// Fixed missing export for addGroupToDB
-export const addGroupToDB = async (group: any) => {
-    return saveData(KEYS.groups, group);
-};
-
-// Fixed missing export for updateGroupInDB
-export const updateGroupInDB = async (group: any) => {
-    return saveData(KEYS.groups, group, true);
-};
-
-// Fixed missing export for deleteGroupFromDB
-export const deleteGroupFromDB = async (id: string) => {
-    return removeData(KEYS.groups, id);
-};
-
-// =========================================================
-// GR INVENTORY
-// =========================================================
-
-// Fixed missing export for fetchGRInventory
-export const fetchGRInventory = async (instanceId?: string): Promise<GRInventoryItem[]> => {
-    return getData(KEYS.gr_inventory, [], instanceId);
-};
-
-// Fixed missing export for updateGRInventoryItemInDB
-export const updateGRInventoryItemInDB = async (item: GRInventoryItem) => {
-    return saveData(KEYS.gr_inventory, item, true);
-};
+export const fetchGRInventory = async (instanceId?: string): Promise<GRInventoryItem[]> => getData(KEYS.gr_inventory, [], instanceId);
+export const updateGRInventoryItemInDB = async (item: GRInventoryItem) => saveData(KEYS.gr_inventory, item, true);

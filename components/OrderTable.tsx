@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Eye, ArrowRight, CreditCard, Globe, ShoppingBag, UserCheck } from 'lucide-react';
-import { Order, UserRole } from '../types';
+import { Order, UserRole } from '../types.ts';
 
 interface OrderTableProps {
   orders: Order[];

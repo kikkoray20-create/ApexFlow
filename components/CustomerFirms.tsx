@@ -18,9 +18,9 @@ import {
     ChevronDown,
     ChevronLeft
 } from 'lucide-react';
-import { Firm, Customer, Order } from '../types';
-import { fetchFirms, addFirmToDB, updateFirmInDB, fetchCustomers, fetchOrders } from '../services/db';
-import { useNotification } from '../context/NotificationContext';
+import { Firm, Customer, Order } from '../types.ts';
+import { fetchFirms, addFirmToDB, updateFirmInDB, fetchCustomers, fetchOrders } from '../services/db.ts';
+import { useNotification } from '../context/NotificationContext.tsx';
 
 const PAGE_SIZE_OPTIONS = [50, 100, 200, 300, 500, 1000];
 
@@ -157,7 +157,7 @@ const CustomerFirms: React.FC = () => {
     const firmBalance = useMemo(() => {
         if (!selectedFirm) return 0;
         const firmMembers = customers.filter(c => c.firmId === selectedFirm.name);
-        return firmMembers.reduce((sum, c) => sum + (c.balance || 0), 0);
+        return firmMembers.reduce((sum, c) => sum + (c?.balance || 0), 0);
     }, [selectedFirm, customers]);
 
     return (

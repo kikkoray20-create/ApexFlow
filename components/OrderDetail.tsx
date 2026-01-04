@@ -34,9 +34,9 @@ import {
     CheckSquare,
     Users
 } from 'lucide-react';
-import { Order, OrderItem, User as UserType, OrderStatus, InventoryItem } from '../types';
-import { useNotification } from '../context/NotificationContext';
-import { updateOrderInDB, fetchInventory } from '../services/db';
+import { Order, OrderItem, User as UserType, OrderStatus, InventoryItem } from '../types.ts';
+import { useNotification } from '../context/NotificationContext.tsx';
+import { updateOrderInDB, fetchInventory } from '../services/db.ts';
 
 interface OrderDetailProps {
   order: Order;
@@ -284,7 +284,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, currentUser, a
         model: invItem.model,
         orderQty: 1,
         displayPrice: invItem.price,
-        fulfillQty: 0,
+        fulfillQty: 0, 
         finalPrice: invItem.price
     };
 

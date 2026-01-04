@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Calendar, Search, Users, ShoppingBag, PackageCheck, Loader2, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Order, OrderItem, Customer } from '../types';
-import { fetchOrders, fetchCustomers } from '../services/db';
+import { Order, OrderItem, Customer } from '../types.ts';
+import { fetchOrders, fetchCustomers } from '../services/db.ts';
 
 const PAGE_SIZE_OPTIONS = [50, 100, 200, 300, 500, 1000];
 

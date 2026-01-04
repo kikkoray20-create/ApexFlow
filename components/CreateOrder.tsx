@@ -9,12 +9,19 @@ import {
     Filter,
     ChevronDown,
     ChevronUp,
-    Box
+    Box,
+    ArrowLeft,
+    CheckCircle2,
+    Package,
+    Tag,
+    Layers,
+    ReceiptText,
+    Truck
 } from 'lucide-react';
-import { Customer, InventoryItem, Order, OrderItem } from '../types';
-import { MOCK_INVENTORY } from '../constants';
-import { fetchInventory } from '../services/db';
-import { useNotification } from '../context/NotificationContext';
+import { Customer, InventoryItem, Order, OrderItem } from '../types.ts';
+import { MOCK_INVENTORY } from '../constants.tsx';
+import { fetchInventory, addOrderToDB } from '../services/db.ts';
+import { useNotification } from '../context/NotificationContext.tsx';
 
 interface CreateOrderProps {
     customer: Customer;
@@ -31,7 +38,7 @@ const CreateOrder: React.FC<CreateOrderProps> = ({ customer, onBack, onSubmitOrd
     const [cart, setCart] = useState<Record<string, number>>({});
     const [activeTab, setActiveTab] = useState('All');
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-    const [cargoName, setCargoName] = useState('');
+    const [cargoName, setCargoName] = useState('1');
     const { showNotification } = useNotification();
 
     const [inventory, setInventory] = useState<ProductItem[]>([]);
@@ -44,11 +51,11 @@ const CreateOrder: React.FC<CreateOrderProps> = ({ customer, onBack, onSubmitOrd
                 const data = await fetchInventory();
                 const formattedData: ProductItem[] = data.map((item: any) => ({
                     ...item,
-                    category: item.category || 'APEXFLOW'
+                    category: item.category || 'General'
                 }));
                 
                 if (formattedData.length === 0) {
-                     const mockWithCategory = MOCK_INVENTORY.map((i: any) => ({...i, category: i.category || 'APEXFLOW'}));
+                     const mockWithCategory = MOCK_INVENTORY.map((i: any) => ({...i, category: i.category || 'General'}));
                      setInventory(mockWithCategory);
                 } else {
                      setInventory(formattedData);
@@ -105,17 +112,16 @@ const CreateOrder: React.FC<CreateOrderProps> = ({ customer, onBack, onSubmitOrd
         return sum + (item ? item.price * (cart[itemId] || 0) : 0);
     }, 0);
 
-    const handlePlaceOrder = () => {
+    const handlePlaceOrder = async () => {
         if (totalQty === 0) return;
         const now = new Date();
-        // Updated ID to be more unique to avoid collision
         const orderId = `${Date.now().toString().slice(-6)}${Math.floor(100 + Math.random() * 899)}`;
         const dateStr = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
         const newOrder: Order = {
             id: orderId,
             customerName: customer.name,
-            customerSubtext: customer.address || '',
+            customerSubtext: customer.city || '',
             orderTime: dateStr,
             warehouse: 'Main Warehouse',
             status: 'fresh',
@@ -140,228 +146,176 @@ const CreateOrder: React.FC<CreateOrderProps> = ({ customer, onBack, onSubmitOrd
             };
         });
 
+        localStorage.setItem(`apexflow_items_${orderId}`, JSON.stringify(orderItems));
+        await addOrderToDB(newOrder);
         onSubmitOrder(newOrder, orderItems);
-        showNotification('Order placed successfully!');
+        showNotification('Order placed successfully!', 'success');
+        onBack();
     };
 
     return (
-        <div className="flex flex-col h-full bg-[#f8fafc] min-h-screen relative animate-in fade-in duration-300">
-            <div className="max-w-2xl mx-auto w-full px-4 pt-6 space-y-4">
-                {/* Header Section */}
-                <div className="flex items-start justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-800">Create Order</h1>
-                        <p className="text-sm text-slate-400 font-medium">Customer: <span className="text-indigo-600 uppercase font-black">{customer.name}</span></p>
-                    </div>
-                    <button onClick={onBack} className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-rose-500 transition-all shadow-sm active:scale-95">
-                        <X size={20} strokeWidth={3} />
+        <div className="flex flex-col space-y-6 animate-in fade-in duration-300">
+            <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <button onClick={onBack} className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 shadow-sm transition-all active:scale-95">
+                        <ArrowLeft size={20} strokeWidth={2.5} />
                     </button>
-                </div>
-
-                {/* Search Box */}
-                <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">
-                        <Search size={20} />
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-800 uppercase tracking-tight">Offline Order Protocol</h2>
+                        <p className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] mt-1 italic">Customer: {customer.name}</p>
                     </div>
-                    <input 
-                        type="text" 
-                        placeholder="Search model, brand or quality..." 
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-12 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:border-blue-400 focus:ring-8 focus:ring-blue-500/5 transition-all text-sm font-bold shadow-sm"
-                    />
                 </div>
-
-                {/* Filter Tabs */}
-                <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                    {tabs.map(tab => (
-                        <button
-                            key={tab.name}
-                            onClick={() => setActiveTab(tab.name)}
-                            className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${
-                                activeTab === tab.name 
-                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100' 
-                                : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
-                            }`}
-                        >
-                            {tab.name} {tab.name !== 'All' && `(${tab.count})`}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Item List */}
-                <div className="space-y-4 pb-32">
-                    {loading ? (
-                        <div className="py-20 flex flex-col items-center gap-4">
-                            <Loader2 className="animate-spin text-indigo-500" size={32} />
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Auditing Stock Levels...</p>
-                        </div>
-                    ) : filteredInventory.length === 0 ? (
-                        <div className="py-20 text-center bg-white rounded-[2rem] border-2 border-dashed border-slate-100">
-                            <Box size={40} className="text-slate-100 mx-auto mb-4" />
-                            <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em]">Zero items matched query</p>
-                        </div>
-                    ) : filteredInventory.map(item => (
-                        <div key={item.id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between group hover:border-indigo-200 transition-all">
-                            <div className="flex-1 min-w-0 pr-4">
-                                <div className="flex items-center gap-2 mb-1.5">
-                                    <span className="px-2 py-0.5 bg-orange-50 text-orange-600 border border-orange-100 rounded text-[9px] font-black uppercase tracking-widest">
-                                        {item.brand}
-                                    </span>
-                                    <span className="px-2 py-0.5 bg-slate-50 text-slate-400 border border-slate-100 rounded text-[9px] font-black uppercase tracking-widest">
-                                        {item.quality}
-                                    </span>
-                                    {/* Stock Indicator Badge */}
-                                    <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border ${
-                                        item.quantity > 50 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                        item.quantity > 0 ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                        'bg-rose-50 text-rose-600 border-rose-100'
-                                    }`}>
-                                        Stock: {item.quantity}
-                                    </span>
-                                </div>
-                                <h3 className="text-[13px] font-black text-slate-800 uppercase leading-tight truncate">
-                                    {item.model}
-                                </h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mt-1">{item.category}</p>
-                            </div>
-                            
-                            <div className="flex items-center gap-5">
-                                <div className="text-right">
-                                    <span className="text-[15px] font-black text-emerald-600 tracking-tighter">₹{item.price.toFixed(1)}</span>
-                                    <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest mt-0.5">Rate/Unit</p>
-                                </div>
-                                <div className="w-24 relative">
-                                    <input 
-                                        type="number" 
-                                        min="0"
-                                        placeholder="0"
-                                        value={cart[item.id] || ''}
-                                        onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                                        className={`w-full py-2.5 px-3 bg-slate-50 border-2 rounded-xl text-center text-sm font-black outline-none transition-all ${
-                                            (cart[item.id] || 0) > 0 
-                                            ? 'border-indigo-500 text-indigo-600 bg-white ring-8 ring-indigo-500/5' 
-                                            : 'border-slate-100 text-slate-400 group-hover:border-slate-200'
-                                        }`}
-                                    />
-                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col opacity-40">
-                                        <ChevronUp size={10} className="mb-0.5 cursor-pointer hover:text-indigo-600" onClick={() => handleQuantityChange(item.id, String((cart[item.id] || 0) + 1))} />
-                                        <ChevronDown size={10} className="cursor-pointer hover:text-indigo-600" onClick={() => handleQuantityChange(item.id, String(Math.max(0, (cart[item.id] || 0) - 1)))} />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                <div className="bg-indigo-600 px-6 py-3 rounded-2xl text-white shadow-xl shadow-indigo-100 flex items-center gap-4">
+                    <div className="text-right border-r border-white/20 pr-4">
+                        <p className="text-[8px] font-black uppercase tracking-widest opacity-60">Cart Value</p>
+                        <p className="text-lg font-black tracking-tighter leading-none">₹{totalAmount.toFixed(1)}</p>
+                    </div>
+                    <button 
+                        onClick={() => setIsConfirmModalOpen(true)}
+                        disabled={totalQty === 0}
+                        className="flex items-center gap-2 font-black text-[11px] uppercase tracking-widest disabled:opacity-50"
+                    >
+                        <ShoppingCart size={18} /> Review
+                    </button>
                 </div>
             </div>
 
-            {/* Sticky Floating Cart */}
-            {Number(totalQty) > 0 && (
-                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-lg px-4 pointer-events-none no-print">
-                    <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] p-6 flex items-center justify-between pointer-events-auto animate-in slide-in-from-bottom-8">
-                        <div className="flex items-center gap-4">
-                            <div className="relative">
-                                <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
-                                    <ShoppingCart size={28} strokeWidth={2.5} />
-                                </div>
-                                <span className="absolute -top-2 -right-2 w-7 h-7 bg-rose-500 text-white text-[11px] font-black rounded-full flex items-center justify-center border-4 border-white shadow-sm">
-                                    {totalItemsCount}
-                                </span>
-                            </div>
-                            <div>
-                                <h4 className="text-base font-black text-slate-800 tracking-tighter uppercase">{totalItemsCount} Lines Selected</h4>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">Quantity: {totalQty} Units</p>
-                            </div>
+            <div className="flex flex-col lg:flex-row gap-6">
+                <div className="flex-1 space-y-6">
+                    <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center">
+                        <div className="relative flex-1 w-full">
+                            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input 
+                                type="text" 
+                                placeholder="SEARCH MODELS..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-[11px] font-bold uppercase outline-none focus:bg-white focus:border-indigo-500 transition-all shadow-inner"
+                            />
                         </div>
-                        
-                        <button 
-                            onClick={() => setIsConfirmModalOpen(true)}
-                            className="px-10 py-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-indigo-100 transition-all active:scale-95"
-                        >
-                            Finalize
-                        </button>
+                        <div className="flex gap-2 w-full md:w-auto overflow-x-auto no-scrollbar py-1">
+                            {tabs.map(tab => (
+                                <button
+                                    key={tab.name}
+                                    onClick={() => setActiveTab(tab.name)}
+                                    className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all whitespace-nowrap ${activeTab === tab.name ? 'bg-indigo-600 text-white border-indigo-700 shadow-md' : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50'}`}
+                                >
+                                    {tab.name} ({tab.count})
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {loading ? (
+                            Array(6).fill(0).map((_, i) => <div key={i} className="h-40 bg-white rounded-3xl animate-pulse"></div>)
+                        ) : filteredInventory.map(item => (
+                            <div key={item.id} className={`p-6 rounded-3xl border transition-all ${cart[item.id] ? 'bg-indigo-50/50 border-indigo-200 ring-2 ring-indigo-500/5' : 'bg-white border-slate-100 hover:border-indigo-200 shadow-sm'}`}>
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex flex-col gap-1.5">
+                                        <span className="inline-flex px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-600 text-[8px] font-black uppercase border border-indigo-100 w-fit">{item.brand}</span>
+                                        <h4 className="text-[13px] font-black text-slate-800 uppercase leading-tight tracking-tight h-10 line-clamp-2">{item.model}</h4>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase">{item.quality}</span>
+                                </div>
+                                <div className="flex items-center justify-between mt-auto">
+                                    <div className="flex flex-col">
+                                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Unit Rate</p>
+                                        <p className="text-sm font-black text-emerald-600 tracking-tighter">₹{item.price.toFixed(1)}</p>
+                                    </div>
+                                    <div className="flex items-center bg-white border border-slate-200 rounded-2xl p-1 shadow-sm">
+                                        <input 
+                                            type="number" 
+                                            value={cart[item.id] || ''} 
+                                            onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                                            placeholder="0"
+                                            className="w-12 text-center text-[12px] font-black outline-none bg-transparent"
+                                        />
+                                        <div className="w-8 h-8 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100 shrink-0">
+                                            <ShoppingCart size={14} />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
-            )}
+
+                {/* Sidebar Cart View */}
+                <div className="w-full lg:w-96 no-print">
+                    <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl sticky top-24">
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-lg font-black uppercase tracking-tighter flex items-center gap-2"><ShoppingCart size={20} className="text-indigo-400" /> Order Deck</h3>
+                            <span className="px-3 py-1 bg-indigo-500 rounded-full text-[9px] font-black uppercase">{totalItemsCount} Types</span>
+                        </div>
+
+                        <div className="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar pr-2 mb-8">
+                            {cartItemIds.length === 0 ? (
+                                <div className="py-20 text-center opacity-30 flex flex-col items-center gap-4 grayscale">
+                                    <Package size={48} />
+                                    <p className="text-[10px] font-black uppercase tracking-[0.3em]">Selection Deck Empty</p>
+                                </div>
+                            ) : cartItemIds.map(id => {
+                                const item = inventory.find(i => i.id === id);
+                                return (
+                                    <div key={id} className="flex items-center justify-between bg-white/5 border border-white/10 p-4 rounded-2xl group transition-all hover:bg-white/10">
+                                        <div className="min-w-0 pr-4">
+                                            <p className="text-[11px] font-black uppercase truncate tracking-tight">{item?.model}</p>
+                                            <p className="text-[9px] font-bold text-white/40 uppercase mt-1">{item?.brand} • ₹{item?.price}</p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-sm font-black text-indigo-400">x{cart[id]}</span>
+                                            <button onClick={() => handleQuantityChange(id, '0')} className="text-white/20 hover:text-rose-500 transition-colors"><X size={16} /></button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <div className="space-y-4 pt-8 border-t border-white/10">
+                            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] text-white/40">
+                                <span>Subtotal Units</span>
+                                <span>{totalQty} Pcs</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xl font-black uppercase tracking-tighter">
+                                <span>Grand Total</span>
+                                <span className="text-emerald-400">₹{totalAmount.toFixed(1)}</span>
+                            </div>
+                            <button 
+                                onClick={() => setIsConfirmModalOpen(true)}
+                                disabled={totalQty === 0}
+                                className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-white/5 disabled:text-white/20 text-white rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl transition-all active:scale-95 mt-4"
+                            >
+                                Secure Checkout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* Confirm Order Modal */}
             {isConfirmModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-200">
-                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95">
-                        <div className="px-8 py-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-                             <div className="flex items-center gap-3">
-                                 <div className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg">
-                                    <Edit2 size={18} />
-                                 </div>
-                                 <h3 className="text-base font-black text-slate-800 uppercase tracking-tight">Finalizing Entry</h3>
-                             </div>
-                             <button onClick={() => setIsConfirmModalOpen(false)} className="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-400 flex items-center justify-center hover:text-rose-500 transition-all shadow-sm">
-                                 <X size={20} />
-                             </button>
-                        </div>
-
-                        <div className="p-8 space-y-6">
-                            <div className="space-y-2">
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Assigned Cargo Name <span className="text-rose-500">*</span></label>
-                                <input 
-                                    type="text" 
-                                    value={cargoName}
-                                    onChange={(e) => setCargoName(e.target.value)}
-                                    placeholder="e.g. BLUE DART / LOCAL TRUCK..."
-                                    className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-indigo-400 outline-none transition-all text-sm font-bold uppercase tracking-tight shadow-inner"
-                                    autoFocus
-                                />
+                <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[120] flex items-center justify-center p-4 animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[3rem] shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95">
+                        <div className="px-10 py-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg"><ReceiptText size={24} /></div>
+                                <div><h3 className="text-xl font-black text-slate-800 uppercase tracking-tight leading-none">Order Validation</h3><p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-2 italic">Confirming Node: {customer.name}</p></div>
                             </div>
-
-                            <div className="bg-slate-50 rounded-[2rem] p-6 border border-slate-100 shadow-inner">
-                                <div className="max-h-40 overflow-y-auto space-y-3 pr-2 custom-scrollbar mb-6">
-                                    {cartItemIds.map(itemId => {
-                                        const item = inventory.find(i => i.id === itemId)!;
-                                        return (
-                                            <div key={itemId} className="flex justify-between items-center text-[11px]">
-                                                <span className="font-black text-slate-700 uppercase truncate max-w-[160px] tracking-tight">
-                                                    {item.brand} | {item.model}
-                                                </span>
-                                                <div className="flex items-center gap-4">
-                                                    <span className="font-bold text-slate-400">{cart[itemId]}x</span>
-                                                    <span className="font-black text-emerald-600">₹{(item.price * (cart[itemId] || 0)).toFixed(1)}</span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                <div className="border-t border-slate-200 pt-5 space-y-2">
-                                    <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                        <span>Items Summary</span>
-                                        <span>{totalItemsCount} Lines</span>
-                                    </div>
-                                    <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                        <span>Total Quantity</span>
-                                        <span>{totalQty} Units</span>
-                                    </div>
-                                    <div className="flex justify-between items-baseline pt-4 border-t border-slate-200 border-dashed mt-4">
-                                        <span className="text-sm font-black uppercase text-slate-900 tracking-tighter">Total Bill Amount</span>
-                                        <span className="text-3xl font-black text-emerald-600 tracking-tighter">₹{totalAmount.toFixed(1)}</span>
-                                    </div>
-                                </div>
+                            <button onClick={() => setIsConfirmModalOpen(false)} className="text-slate-400 hover:text-rose-500 transition-colors"><X size={24} /></button>
+                        </div>
+                        <div className="p-10 space-y-8">
+                            <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-2"><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Dispatch Cargo Name</label><div className="relative"><input type="text" value={cargoName} onChange={e => setCargoName(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-[13px] font-bold uppercase outline-none focus:bg-white focus:border-indigo-500 transition-all" /><Truck size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" /></div></div>
+                                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100"><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Items Summary</p><p className="text-2xl font-black text-slate-900 tracking-tighter">{totalQty} Pcs • {totalItemsCount} Models</p></div>
+                            </div>
+                            <div className="border border-slate-100 rounded-[2rem] overflow-hidden max-h-48 overflow-y-auto custom-scrollbar">
+                                <table className="w-full text-left"><thead className="bg-slate-50 border-b border-slate-100"><tr className="text-[9px] font-black uppercase text-slate-400"><th className="px-6 py-3">Item Description</th><th className="px-6 py-3 text-center">Qty</th><th className="px-6 py-3 text-right">Amount</th></tr></thead><tbody className="divide-y divide-slate-50">{cartItemIds.map(id => { const item = inventory.find(i => i.id === id); return (<tr key={id} className="text-[11px] font-bold text-slate-600"><td className="px-6 py-4 uppercase">{item?.model}</td><td className="px-6 py-4 text-center">{cart[id]}</td><td className="px-6 py-4 text-right">₹{(cart[id] * (item?.price || 0)).toFixed(1)}</td></tr>); })}</tbody></table>
                             </div>
                         </div>
-
-                        <div className="px-8 pb-8 flex gap-4">
-                            <button 
-                                onClick={() => setIsConfirmModalOpen(false)}
-                                className="flex-1 py-4 bg-slate-50 text-slate-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all shadow-sm"
-                            >
-                                Discard
-                            </button>
-                            <button 
-                                disabled={!cargoName.trim()}
-                                onClick={handlePlaceOrder}
-                                className="flex-[2] py-4 bg-indigo-600 disabled:opacity-50 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-indigo-100 transition-all active:scale-95 hover:bg-indigo-700"
-                            >
-                                Commit to Pipeline
-                            </button>
+                        <div className="px-10 py-8 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+                            <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Verified Total Payable</p><p className="text-3xl font-black text-indigo-600 tracking-tighter italic">₹{totalAmount.toFixed(1)}</p></div>
+                            <button onClick={handlePlaceOrder} className="px-12 py-5 bg-indigo-600 text-white rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] shadow-xl shadow-indigo-100 active:scale-95 transition-all flex items-center gap-3">Authorize Order <CheckCircle2 size={18} /></button>
                         </div>
                     </div>
                 </div>

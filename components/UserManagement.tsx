@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, UserRole } from '../types';
+import { User, UserRole } from '../types.ts';
 import { 
     Phone, 
     Edit2, 
@@ -17,8 +17,8 @@ import {
     Smartphone,
     ShieldCheck
 } from 'lucide-react';
-import { fetchUsers, addUserToDB, updateUserInDB, deleteUserFromDB } from '../services/db';
-import { useNotification } from '../context/NotificationContext';
+import { fetchUsers, addUserToDB, updateUserInDB, deleteUserFromDB } from '../services/db.ts';
+import { useNotification } from '../context/NotificationContext.tsx';
 
 interface UserManagementProps {
     currentUser?: User; // Passed to get instanceId

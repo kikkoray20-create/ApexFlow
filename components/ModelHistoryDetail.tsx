@@ -5,8 +5,8 @@ import {
     TrendingDown, TrendingUp, Search,
     Loader2, Database, Users, X, User, Plus
 } from 'lucide-react';
-import { InventoryLog } from '../types';
-import { fetchInventoryLogs } from '../services/db';
+import { InventoryLog } from '../types.ts';
+import { fetchInventoryLogs } from '../services/db.ts';
 
 interface ModelHistoryDetailProps {
     model: any;

@@ -3,7 +3,7 @@ import {
   ShoppingBag, Package, UserPlus, Box, 
   CheckCircle, Truck, Send, Clock, ArrowUpRight
 } from 'lucide-react';
-import { Order } from '../types';
+import { Order } from '../types.ts';
 
 interface StatsCardsProps {
   orders: Order[];

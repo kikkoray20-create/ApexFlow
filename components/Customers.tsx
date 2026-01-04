@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Customer, Firm, Order, OrderItem } from '../types';
+import { Customer, Firm, Order, OrderItem } from '../types.ts';
 import { 
   Phone, 
   MapPin, 
@@ -49,11 +49,10 @@ import {
   Filter, 
   ChevronDown, 
   RefreshCw,
-  // Added AlertTriangle to fix the "Cannot find name 'AlertTriangle'" error
   AlertTriangle 
 } from 'lucide-react';
-import { fetchCustomers, addCustomerToDB, updateCustomerInDB, fetchFirms, addOrderToDB, fetchOrders, addFirmToDB } from '../services/db';
-import { useNotification } from '../context/NotificationContext';
+import { fetchCustomers, addCustomerToDB, updateCustomerInDB, fetchFirms, addOrderToDB, fetchOrders, addFirmToDB } from '../services/db.ts';
+import { useNotification } from '../context/NotificationContext.tsx';
 
 interface CustomersProps {
   onCreateOrder?: (customer: Customer) => void;
@@ -123,8 +122,8 @@ const Customers: React.FC<CustomersProps> = ({ onCreateOrder }) => {
 
   const filteredCustomers = useMemo(() => {
     return customers.filter(c => {
-      return c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.phone.includes(searchTerm) ||
+      return (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.phone || '').includes(searchTerm) ||
         (c.city && c.city.toLowerCase().includes(searchTerm.toLowerCase()));
     });
   }, [customers, searchTerm]);
@@ -140,7 +139,7 @@ const Customers: React.FC<CustomersProps> = ({ onCreateOrder }) => {
   const rangeEnd = Math.min(currentPage * itemsPerPage, filteredCustomers.length);
 
   const filteredFirmsForSelect = useMemo(() => {
-    return firms.filter(f => f.name.toLowerCase().includes(firmSearchTerm.toLowerCase()));
+    return firms.filter(f => (f.name || '').toLowerCase().includes(firmSearchTerm.toLowerCase()));
   }, [firms, firmSearchTerm]);
 
   const firmGroup = useMemo(() => {
@@ -167,7 +166,7 @@ const Customers: React.FC<CustomersProps> = ({ onCreateOrder }) => {
   const financialSummary = useMemo(() => {
     const summary = { totalPurchases: 0, totalPayments: 0, totalReturns: 0 };
     firmLedger.forEach(o => {
-        if (o.status === 'rejected') return; // Ignore rejected in summary
+        if (o.status === 'rejected') return; 
         if (o.status === 'Payment') summary.totalPayments += (o.totalAmount || 0);
         else if (o.status === 'Return') summary.totalReturns += (o.totalAmount || 0);
         else summary.totalPurchases += (o.totalAmount || 0);
@@ -650,7 +649,7 @@ const Customers: React.FC<CustomersProps> = ({ onCreateOrder }) => {
                         <div className="flex flex-col gap-2">
                             {['Approved', 'Pending', 'Rejected'].map(id => (
                                 <button key={id} type="button" onClick={() => setFormData({...formData, status: id})} className={`flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all ${formData.status === id ? 'bg-white border-indigo-500 shadow-md ring-4 ring-indigo-500/5' : 'bg-white border-slate-100 opacity-60 hover:opacity-100'}`}>
-                                    <div className="flex items-center gap-3"><div className={`w-2 h-2 rounded-full ${id === 'Approved' ? 'bg-emerald-500' : id === 'Pending' ? 'bg-amber-500' : id === 'Pending' ? 'bg-amber-500' : 'bg-rose-500'}`}></div><span className={`text-[10px] font-black uppercase tracking-[0.1em] ${formData.status === id ? 'text-indigo-600' : 'text-slate-400'}`}>{id}</span></div>
+                                    <div className="flex items-center gap-3"><div className={`w-2 h-2 rounded-full ${id === 'Approved' ? 'bg-emerald-500' : id === 'Pending' ? 'bg-amber-500' : 'bg-rose-500'}`}></div><span className={`text-[10px] font-black uppercase tracking-[0.1em] ${formData.status === id ? 'text-indigo-600' : 'text-slate-400'}`}>{id}</span></div>
                                     {formData.status === id && <CheckCircle2 size={16} className="text-indigo-500" />}
                                 </button>
                             ))}
@@ -719,7 +718,7 @@ const Customers: React.FC<CustomersProps> = ({ onCreateOrder }) => {
 
       {isStatementModalOpen && selectedCustomer && (
         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[200] flex items-center justify-center p-2 md:p-6 overflow-y-auto print:static print:bg-white print:p-0 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-3xl h-auto max-h-[90vh] flex flex-col overflow-hidden border border-slate-100 print:shadow-none print:border-none print:rounded-none animate-in zoom-in-95">
+          <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-3xl h-auto max-h-[90vh] flex flex-col overflow-hidden border border-slate-100 print:shadow-none print:border-none print:rounded-none animate-in zoom-in-95">
             <div className="px-8 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 no-print shrink-0"><div className="flex items-center gap-3"><ReceiptText size={20} className="text-indigo-600" /><span className="text-sm font-black text-slate-800 uppercase tracking-widest">Account Statement</span></div><button onClick={() => setIsStatementModalOpen(false)} className="text-slate-400 hover:text-rose-500 transition-colors p-2 rounded-full hover:bg-white"><X size={24} /></button></div>
             <div className="flex-1 p-4 md:p-6 print:p-0 bg-slate-100/50 print:bg-white overflow-y-auto custom-scrollbar">
               <div id="statement-print-area" className="bg-white w-full max-w-full mx-auto shadow-sm p-6 md:p-10 border border-slate-200 print:shadow-none print:border-none print:p-10 font-sans text-slate-900 flex flex-col min-h-[800px]">

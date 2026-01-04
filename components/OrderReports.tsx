@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Calendar, FileText, Download, RefreshCw, FileSpreadsheet, AlertCircle, Loader2 } from 'lucide-react';
-import { Order, OrderItem } from '../types';
-import { fetchOrders } from '../services/db';
-import { useNotification } from '../context/NotificationContext';
+import { Order, OrderItem } from '../types.ts';
+import { fetchOrders } from '../services/db.ts';
+import { useNotification } from '../context/NotificationContext.tsx';
 
 const OrderReports: React.FC = () => {
     const { showNotification } = useNotification();

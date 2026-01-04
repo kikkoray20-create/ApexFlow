@@ -4,10 +4,10 @@ import {
     Calendar, ArrowRight, ClipboardList, TrendingUp, TrendingDown, Layers, History,
     ChevronDown, ChevronLeft, ChevronRight
 } from 'lucide-react';
-import { MOCK_INVENTORY } from '../constants';
-import { InventoryLog, InventoryItem } from '../types';
-import { fetchInventoryLogs, fetchInventory, updateInventoryItemInDB, addInventoryLogToDB } from '../services/db';
-import { useNotification } from '../context/NotificationContext';
+import { MOCK_INVENTORY } from '../constants.tsx';
+import { InventoryLog, InventoryItem } from '../types.ts';
+import { fetchInventoryLogs, fetchInventory, updateInventoryItemInDB, addInventoryLogToDB } from '../services/db.ts';
+import { useNotification } from '../context/NotificationContext.tsx';
 
 const PAGE_SIZE_OPTIONS = [50, 100, 200, 300, 500, 1000];
 
@@ -235,7 +235,7 @@ const Inventory: React.FC = () => {
                 )}
             </div>
 
-            {/* Bulk Modal (Workflow Unchanged) */}
+            {/* Bulk Modal */}
             {isBulkModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[150] flex items-center justify-center p-4 animate-in fade-in duration-300">
                     <div className="bg-white rounded-[3rem] shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden border border-slate-100 animate-in zoom-in-95">
