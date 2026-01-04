@@ -16,7 +16,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (mobile.length !== 10) {
-        setError('Please enter a valid 10-digit mobile number');
+        setError('PLEASE ENTER 10-DIGIT MOBILE');
         return;
     }
 
@@ -40,19 +40,23 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
     try {
         const users = await fetchUsers();
-        const matchedUser = users.find(u => u.phone.replace(/\D/g, '').endsWith(mobile) && u.password === password);
+        const matchedUser = users.find(u => {
+            const cleanedDBPhone = u.phone.replace(/\D/g, '');
+            return cleanedDBPhone.endsWith(mobile) && u.password === password;
+        });
         
-        if (matchedUser) {
-            if (!matchedUser.active) {
-                setError('ACCESS REVOKED');
-                setLoading(false);
+        setTimeout(() => {
+            if (matchedUser) {
+                if (!matchedUser.active) {
+                    setError('ACCESS REVOKED');
+                } else {
+                    onLogin(matchedUser);
+                }
             } else {
-                onLogin(matchedUser);
+                setError('INVALID CREDENTIALS');
             }
-        } else {
-            setError('INVALID CREDENTIALS');
             setLoading(false);
-        }
+        }, 800);
     } catch (err) {
         setError('CLOUD SYNC FAILED');
         setLoading(false);
